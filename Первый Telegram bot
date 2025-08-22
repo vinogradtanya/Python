@@ -81,3 +81,80 @@ def echo(message):
 
 
 bot.polling(none_stop=True)
+
+Модификация кода
+import telebot # импорт библиотеки
+import random
+
+token = "8352397295:AAGxtkKuT5AFABL5J2AOE5I3-w64259Nshs" # строковая переменная
+
+bot = telebot.TeleBot(token) # создание переменной
+
+RANDOM_TASKS = ['Написать письмо', 'Выучить Python',
+                'Посмотреть 4 сезон Рик и Морти']
+
+name = "Таня"
+
+HELP = '''
+Список доступных команд:
+/print  - список доступных команд
+/add - добавить задачу
+/show - все задачи
+/random - добавить на сегодня случайную задачу
+/help - Напечатать help
+'''
+
+tasks = {}
+def add_todo(date, task):
+    if date in tasks:
+        tasks[date].append(task)
+    else:
+        tasks[date] = []
+        tasks[date].append(task)
+
+@bot.message_handler(commands=["help"]) # декоратор. регистрация сообщений с типом: текст
+
+def help(message):
+    bot.send_message(message.chat.id, HELP)
+
+@bot.message_handler(commands=["add"])
+
+def add(message):
+    command = message.text.split(maxsplit=2)
+    date = command[1].lower()
+    task = command[2]
+    add_todo(date, task)
+    text = "Задача " + task + " добавлена на дату " + date
+    bot.send_message(message.chat.id, text)
+
+@bot.message_handler(commands=["random_add"])
+
+def random_add(message):
+    date = "сегодня"
+    task = random.choice(RANDOM_TASKS)
+    add_todo(date, task)
+    text = "Задача" + " добавлена на дату " + date
+    bot.send_message(message.chat.id, text)
+
+@bot.message_handler(commands=["show", "print"])
+
+def show(message):
+    command = message.text.split(maxsplit=1)
+    date = command[1].lower()
+    text = ""
+    if date in tasks:
+        text = date.upper() + "\n"
+        for task in tasks[date]:
+            text = text + "[] " + task + "\n"
+    else:
+        text = "Задач на эту дату нет"
+    bot.send_message(message.chat.id, text)
+
+
+def echo(message): # функция обработчика, принимает 1 сообщение
+    if name in message.text:
+        bot.send_message(message.chat.id, "Ба! Знакомые все лица")
+    else:
+        bot.send_message(message.chat.id, message.text) # ответ на сообщение
+
+bot.polling(none_stop=True) # постоянно обращается к серверам телеграм
